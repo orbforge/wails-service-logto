@@ -55,17 +55,46 @@ func (s *Service) ServiceShutdown() error {
 // If the user completes the sign in flow successfully, this function will return true and user sign in status and
 // details will be available through this service.
 // If the user alredy has an active auth session cookie, this function should complete without ever showing a new window.
-func (s *Service) SignIn() (bool, error) {
+func (s *Service) SignIn(opts ...*client.SignInOptions) (bool, error) {
 	// start a callback listener
 	listener, callbackUrl, err := StartListener(s.client.HandleSignInCallback, s.config.SignInURIs()...)
 	if err != nil {
 		return false, err
 	}
 
-	signinUrl, err := s.client.SignIn(
-		&client.SignInOptions{
-			RedirectUri: callbackUrl,
-		})
+	clientOpts := client.SignInOptions{
+		RedirectUri: callbackUrl,
+	}
+	var options *client.SignInOptions
+	if len(opts) > 0 {
+		options = opts[0]
+	}
+
+	if options != nil {
+		if options.RedirectUri != "" {
+			clientOpts.RedirectUri = options.RedirectUri
+		} 
+		if options.Prompt != "" {
+			clientOpts.Prompt = options.Prompt
+		}
+		if options.FirstScreen != "" {
+			clientOpts.FirstScreen = options.FirstScreen
+		}
+		if len(options.Identifiers) > 0 {
+			clientOpts.Identifiers = options.Identifiers
+		}
+		if options.DirectSignIn != nil {
+			clientOpts.DirectSignIn = options.DirectSignIn
+		}
+		if options.LoginHint != "" {
+			clientOpts.LoginHint = options.LoginHint
+		}
+		if len(options.ExtraParams) > 0 {
+			clientOpts.ExtraParams = options.ExtraParams
+		}
+	}
+
+	signinUrl, err := s.client.SignIn(&clientOpts)
 	if err != nil {
 		return false, err
 	}
