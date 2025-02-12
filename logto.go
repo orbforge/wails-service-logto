@@ -55,6 +55,8 @@ func (s *Service) ServiceShutdown() error {
 // If the user completes the sign in flow successfully, this function will return true and user sign in status and
 // details will be available through this service.
 // If the user alredy has an active auth session cookie, this function should complete without ever showing a new window.
+// This function will use default SignInOptions if called without parameters. 
+// Defaults can be optionally overriden by passing in a SignInOptions object with any value you want to override.
 func (s *Service) SignIn(opts ...*client.SignInOptions) (bool, error) {
 	// start a callback listener
 	listener, callbackUrl, err := StartListener(s.client.HandleSignInCallback, s.config.SignInURIs()...)
@@ -65,6 +67,7 @@ func (s *Service) SignIn(opts ...*client.SignInOptions) (bool, error) {
 	clientOpts := client.SignInOptions{
 		RedirectUri: callbackUrl,
 	}
+
 	var options *client.SignInOptions
 	if len(opts) > 0 {
 		options = opts[0]
